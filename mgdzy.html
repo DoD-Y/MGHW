@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>硅基突围 - 科技自立自强主题桌游 | 角色技能与个人说明</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none; /* 避免拖动文字干扰点击，但不影响选择文本用于调试 */
+        }
+        body {
+            background: linear-gradient(145deg, #1a472a 0%, #0e2a1a 100%);
+            font-family: 'Segoe UI', 'Roboto', 'Noto Sans', system-ui, -apple-system, 'Microsoft YaHei', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        /* 主游戏面板 */
+        .game-container {
+            max-width: 1450px;
+            width: 100%;
+            background: rgba(30, 20, 15, 0.7);
+            backdrop-filter: blur(2px);
+            border-radius: 3rem;
+            padding: 1.5rem;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,215,150,0.3);
+        }
+        /* 顶部状态栏 */
+        .stats-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: space-between;
+            background: #0f2c1bb3;
+            backdrop-filter: blur(8px);
+            border-radius: 2rem;
+            padding: 1rem 1.8rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #c2a15b;
+            box-shadow: 0 5px 12px black;
+        }
+        .stat-card {
+            background: #2c2118;
+            border-radius: 2rem;
+            padding: 0.5rem 1.2rem;
+            color: #ffecb3;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 2px 3px rgba(0,0,0,0.3);
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            background: #5a3e2e;
+            padding: 0.2rem 0.8rem;
+            border-radius: 2rem;
+        }
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            font-family: monospace;
+            color: #f5c542;
+            min-width: 60px;
+            text-align: center;
+        }
+        .warning {
+            color: #ff8a5c;
+            text-shadow: 0 0 3px red;
+        }
+        /* 中间区域: 研发进度 + 协作单位 */
+        .core-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .tech-progress {
+            flex: 2;
+            min-width: 260px;
+            background: #1e2a21dd;
+            border-radius: 2rem;
+            padding: 1rem;
+            backdrop-filter: blur(4px);
+        }
+        .progress-bar-container {
+            background: #2e2a24;
+            border-radius: 2rem;
+            padding: 0.2rem;
+            margin: 0.8rem 0;
+        }
+        .progress-bar {
+            background: linear-gradient(90deg, #4caf50, #ffc107);
+            height: 28px;
+            border-radius: 2rem;
+            width: 0%;
+            transition: width 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: black;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        .milestone-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        .milestone-badge {
+            background: #332211;
+            border-radius: 2rem;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.7rem;
+            color: #e6cba0;
+        }
+        .milestone-completed {
+            background: #2a6230;
+            color: #ffefb9;
+            text-decoration: line-through;
+            opacity: 0.8;
+        }
+        .collab-area {
+            flex: 1.2;
+            background: #262217b3;
+            border-radius: 2rem;
+            padding: 1rem;
+        }
+        .collab-btn {
+            background: #3f2e1f;
+            border: none;
+            color: #ffe3b3;
+            padding: 8px 12px;
+            margin: 5px;
+            border-radius: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        .collab-btn.active {
+            background: #d9a13b;
+            color: #1f2a0e;
+            box-shadow: 0 0 6px gold;
+        }
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .primary-btn {
+            background: #c97e2a;
+            border: none;
+            padding: 12px 24px;
+            font-weight: bold;
+            border-radius: 3rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.08s linear;
+            box-shadow: 0 4px 0 #5e2e12;
+            color: #222;
+        }
+        .primary-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #5e2e12;
+        }
+        .special-btn {
+            background: #2c6e9e;
+            box-shadow: 0 4px 0 #1a3f5c;
+            color: white;
+        }
+        .special-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #1a3f5c;
+        }
+        .danger-btn {
+            background: #6d3b1c;
+            color: #ffc9a4;
+            box-shadow: 0 4px 0 #361a0a;
+        }
+        .roll-area {
+            background: #00000066;
+            border-radius: 1.5rem;
+            padding: 0.8rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+        .log-area {
+            background: #0b130fcc;
+            border-radius: 1.5rem;
+            padding: 1rem;
+            height: 180px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #cfcfcf;
+            margin-top: 1rem;
+        }
+        .role-badge {
+            background: #462b1c;
+            border-radius: 2rem;
+            padding: 0.2rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+        button:disabled {
+            opacity: 0.5;
+            transform: none;
+            cursor: not-allowed;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        @media (max-width: 800px) {
+            .stats-panel { flex-direction: column; }
+            .stat-value { font-size: 1.2rem; }
+            .primary-btn { padding: 8px 16px; font-size: 0.8rem;}
+        }
+        h3 {
+            margin: 0 0 8px 0;
+            color: #ffda99;
+        }
+        hr {
+            border-color: #7a5a3a;
+        }
+        .reset-btn {
+            background: #3e2c1d;
+            border: 1px solid #b78f50;
+            color: #ffe2b5;
+        }
+        /* 角色卡片 + 技能说明区域 */
+        .role-showcase {
+            background: #1e2a1edd;
+            border-radius: 2rem;
+            padding: 0.8rem 1.2rem;
+            margin-bottom: 1.2rem;
+            border-left: 8px solid #ffc107;
+            transition: all 0.2s;
+        }
+        .role-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .role-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffdd99;
+        }
+        .role-tag {
+            background: #2c3e2b;
+            border-radius: 2rem;
+            padding: 0.2rem 1rem;
+            font-size: 0.75rem;
+            color: #ffda99;
+        }
+        .skill-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+        .skill-item {
+            background: #00000066;
+            border-radius: 1.5rem;
+            padding: 0.3rem 1rem;
+            border-left: 3px solid #f5b642;
+            color: white;
+        }
+        .role-desc {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: #e6d5b3;
+            background: #2a241bbb;
+            border-radius: 1.2rem;
+            padding: 0.4rem 1rem;
+        }
+        .role-switch-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .role-switch-btn {
+            background: #4a3724;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 2rem;
+            font-weight: bold;
+            color: #ffecb3;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .role-switch-btn.active-role {
+            background: #d9a13b;
+            color: #1f2a0e;
+            box-shadow: 0 0 8px orange;
+        }
+        .role-switch-btn:hover:not(:disabled) {
+            background: #b87c32;
+            color: white;
+        }
+        .extra-action-area {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+<div class="game-container" id="gameRoot">
+    <!-- 顶部数据 -->
+    <div class="stats-panel">
+        <div class="stat-card"><span class="stat-label">📅 回合</span><span class="stat-value" id="turnCount">0</span><span class="stat-label">/12</span></div>
+        <div class="stat-card"><span class="stat-label">🔬 研发进度</span><span class="stat-value" id="progressValue">0</span><span class="stat-label">%</span></div>
+        <div class="stat-card"><span class="stat-label">⚠️ 断供风险</span><span class="stat-value warning" id="riskValue">0</span><span class="stat-label">/5 (封顶)</span></div>
+        <div class="stat-card"><span class="stat-label">🧑‍🤝‍🧑 协作单位</span><span class="stat-value" id="collabCount">0</span><span class="stat-label">加成 +<span id="collabBonus">0</span></span></div>
+        <div class="stat-card"><span class="stat-label">🎓 人才梯队</span><span class="stat-value" id="talentCount">0</span><span class="stat-label">/5(胜利)</span></div>
+        <div class="stat-card"><span class="stat-label">📉 人才流失</span><span class="stat-value warning" id="lossCount">0</span><span class="stat-label">/3败</span></div>
+    </div>
+
+    <!-- 角色展示 + 技能 + 说明 (动态更新) -->
+    <div class="role-showcase" id="roleShowcase">
+        <div class="role-header">
+            <span class="role-name" id="displayRoleName">总工程师（技术型）</span>
+            <span class="role-tag" id="displayRoleTag">🔥 技术突围 · 攻坚核心</span>
+        </div>
+        <div class="skill-box" id="skillList"></div>
+        <div class="role-desc" id="roleDescription"></div>
+    </div>
+
+    <div class="core-area">
+        <!-- 研发进度及技术指标 -->
+        <div class="tech-progress">
+            <div class="flex-between"><h3>🧬 核心技术指标 (6项)</h3><span id="techDoneNum">0</span><span>/6</span></div>
+            <div class="progress-bar-container"><div class="progress-bar" id="progressFill" style="width:0%">0%</div></div>
+            <div id="milestoneContainer" class="milestone-list"></div>
+            <div class="roll-area">
+                <span style="color: white;">📐 实事求是·验证  |  当前角色: <strong id="roleName">总工程师</strong></span>
+                <button id="verifyBtn" class="primary-btn" style="margin-left:12px; background:#b97f44;">🎲 实验验证</button>
+            </div>
+            <!-- 角色特殊技能按钮区域 (动态显示) -->
+            <div id="specialSkillContainer" class="extra-action-area"></div>
+        </div>
+        <!-- 协作机制 + 独立自主 -->
+        <div class="collab-area">
+            <h3>🤝 群众路线 · 协作网络</h3>
+            <div id="collabList" class="flex-between" style="flex-wrap:wrap;"></div>
+            <p style="font-size:0.7rem; margin-top: 10px; color: white;">✨ 协作加成: 每多一个协作单位, 研发速度提升(+1/单位)。总工程师加成减半，项目管理师额外+1。</p>
+            <hr>
+            <h3>⚙️ 独立自主 · 攻坚</h3>
+            <button id="autonomyBtn" class="collab-btn">💪 自主攻关 (消耗2进度移除1风险)</button>
+            <button id="importTechBtn" class="collab-btn" style="background:#7d4e2a;">📦 依赖进口技术 (+12进度, +1风险)</button>
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <button id="recruitBtn" class="primary-btn">🎓 人才引进 (消耗回合招募青年骨干)</button>
+        <button id="nextRoundBtn" class="primary-btn" style="background:#2c6e3c;">⏩ 结束回合 & 推进研发</button>
+        <button id="resetBtn" class="primary-btn reset-btn">🔄 重新开局</button>
+    </div>
+
+    <!-- 角色切换栏 (美观) -->
+    <div class="role-switch-group" id="roleSwitchBar" style="margin-top: 8px; justify-content: center;">
+        <span style="color:#ffcf8a;">🎭 切换角色查看专属技能与说明：</span>
+        <button data-role="0" class="role-switch-btn">👨‍🔧 总工程师</button>
+        <button data-role="1" class="role-switch-btn">📊 项目管理师</button>
+        <button data-role="2" class="role-switch-btn">⚡ 青年科研骨干</button>
+        <button data-role="3" class="role-switch-btn">🏛️ 政策协调员</button>
+    </div>
+
+    <!-- 事件日志 -->
+    <div class="log-area" id="logPanel">
+        > 欢迎来到《硅基突围》科技自立自强桌游<br>
+        > 在12回合内完成全部6项技术指标，警惕断供风险和人才流失！<br>
+        > 点击【实验验证】获得研发点数，并触发独立自主/协作机制。<br>
+        > 选择不同角色，技能与个人说明将实时展示。<br>
+        > 💡 总工程师拥有【技术突围】额外验证按钮；青年骨干自动触发极限攻关；政策协调员每3回合自动获得国家重大专项。
+    </div>
+</div>
+
+<script>
+    // ======================= 角色资料库（含技能、个人说明）=======================
+    const ROLES_DATA = {
+        0: { // 总工程师
+            name: "总工程师（技术型）",
+            tag: "🎯 技术突围 · 攻坚核心",
+            skills: [
+                "✨ 核心技能「技术突围」: 每回合可额外进行1次实事求是验证（点击下方【⚡ 技术突围】按钮）",
+                "⚠️ 弱点: 协作加成效果减半（专注技术细节，不擅长协调外部资源）",
+                "🌟 特殊能力: 研发进度达到50%时，触发「关键路径突破」直接完成剩余进度的20%"
+            ],
+            description: "深耕半导体行业二十年的技术专家，曾参与多项国家重大专项，对技术路线有独特洞察。代表科技人才队伍中的领军人物，具备攻坚克难的硬实力。"
+        },
+        1: { // 项目管理师
+            name: "项目管理师（协调型）",
+            tag: "📋 资源统筹 · 全国一盘棋",
+            skills: [
+                "✨ 核心技能「资源统筹」: 协作加成额外+1（已自动生效）",
+                "⚠️ 弱点: 无法独自进行实事求是验证（需要依赖技术人员协助）——游戏中仍可验证，但效率略低",
+                "🌟 特殊能力: 可执行「人才引进」行动额外高效，消耗1回合招募1名青年骨干"
+            ],
+            description: "曾任国家重大科技专项管理办公室主任，熟悉各类资源配置和政策工具。代表新型举国体制中的组织协调力量，体现“全国一盘棋”思想。"
+        },
+        2: { // 青年骨干
+            name: "青年科研骨干（攻坚型）",
+            tag: "⚡ 极限攻关 · 使命担当",
+            skills: [
+                "✨ 核心技能「极限攻关」: 连续3回合不休息，每次验证自动+2研发点（已自动生效）",
+                "⚠️ 弱点: 若连续2回合未获得任何协作支持，触发「人才焦虑」，士气下降",
+                "🌟 特殊能力: 触发「学术交流」事件时，可获得协作单位的1项关键技术（无需验证）"
+            ],
+            description: "35岁的青年科学家，曾留学海外后归国，有强烈的使命感和拼搏精神。代表一线科研人员的奋斗精神和家国情怀，是科技自立自强的中坚力量。"
+        },
+        3: { // 政策协调员 (新增第四角色，完美匹配文档)
+            name: "政策协调员",
+            tag: "🏛️ 政策赋能 · 有为政府",
+            skills: [
+                "✨ 核心技能「政策赋能」: 每3回合自动获得“国家重大专项” +10研发进度（已自动生效）",
+                "⚠️ 弱点: 直接研发能力弱，基础研发点减半（每回合自动产出-2）",
+                "🌟 特殊能力: 可消除1次「技术封锁」事件的负面影响（封锁时弹窗询问）"
+            ],
+            description: "对接国家战略资源，协调部委与产业政策，充分发挥新型举国体制优势。代表政府与市场的协同作用，体现有为政府的关键支撑。"
+        }
+    };
+
+    // ---------- 游戏核心状态 ----------
+    let game = {
+        turn: 0,
+        progress: 0,
+        risk: 0,
+        collaborationUnits: [],
+        talents: 0,
+        brainDrain: 0,
+        gameOver: false,
+        winFlag: false,
+        role: 0,               // 0总工,1项目管理,2青年骨干,3政策协调员
+        hasVerifiedThisTurn: false,
+        extraUsedThisTurn: false, // 总工程师额外验证是否已用
+        extremeStrikeCounter: 0,
+        extremeRestNeeded: false,
+        policyCooldown: 0,      // 政策协调员技能冷却回合计数
+        techBlockadeActive: false,
+    };
+
+    // 技术指标列表
+    const milestones = ["光刻精度达标", "良品率突破", "产能爬坡稳定", "供应链自主可控", "人才储备达标", "标准制定主导"];
+    let completedMilestones = 0;
+    
+    const allCollaborations = [
+        { name: "🏫 顶尖高校", bonus:1, active: false },
+        { name: "🔬 科研院所", bonus:1, active: false },
+        { name: "🏭 产业链企业", bonus:1, active: false },
+        { name: "🌐 创新联合体", bonus:1, active: false }
+    ];
+
+    // DOM 元素
+    const turnSpan = document.getElementById('turnCount');
+    const progressSpan = document.getElementById('progressValue');
+    const riskSpan = document.getElementById('riskValue');
+    const collabCountSpan = document.getElementById('collabCount');
+    const collabBonusSpan = document.getElementById('collabBonus');
+    const talentSpan = document.getElementById('talentCount');
+    const lossSpan = document.getElementById('lossCount');
+    const techDoneNumSpan = document.getElementById('techDoneNum');
+    const progressFillDiv = document.getElementById('progressFill');
+    const milestoneContainer = document.getElementById('milestoneContainer');
+    const roleNameSpan = document.getElementById('roleName');
+    const logPanel = document.getElementById('logPanel');
+    const verifyBtn = document.getElementById('verifyBtn');
+    const autonomyBtn = document.getElementById('autonomyBtn');
+    const importTechBtn = document.getElementById('importTechBtn');
+    const recruitBtn = document.getElementById('recruitBtn');
+    const nextRoundBtn = document.getElementById('nextRoundBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const collabListDiv = document.getElementById('collabList');
+    const specialSkillContainer = document.getElementById('specialSkillContainer');
+
+    // 角色展示元素
+    const displayRoleName = document.getElementById('displayRoleName');
+    const displayRoleTag = document.getElementById('displayRoleTag');
+    const skillListDiv = document.getElementById('skillList');
+    const roleDescriptionSpan = document.getElementById('roleDescription');
+
+    function updateRoleUI() {
+        const data = ROLES_DATA[game.role];
+        if(data) {
+            displayRoleName.innerText = data.name;
+            displayRoleTag.innerText = data.tag;
+            skillListDiv.innerHTML = data.skills.map(s => `<div class="skill-item">${s}</div>`).join('');
+            roleDescriptionSpan.innerText = data.description;
+        }
+        const simpleNames = ["总工程师", "项目管理师", "青年骨干", "政策协调员"];
+        roleNameSpan.innerText = simpleNames[game.role] || "总工程师";
+        
+        // 动态渲染特殊技能按钮（总工程师专用）
+        if(game.role === 0 && !game.gameOver) {
+            specialSkillContainer.innerHTML = `<button id="extraBreakthroughBtn" class="primary-btn special-btn" style="background:#3a6b8f;">⚡ 技术突围（额外验证）</button>`;
+            const extraBtn = document.getElementById('extraBreakthroughBtn');
+            if(extraBtn) {
+                extraBtn.onclick = () => performExtraVerification();
+                // 如果已经用过额外验证或回合已验证过，禁用
+                if(game.extraUsedThisTurn || game.hasVerifiedThisTurn || (game.gameOver)) {
+                    extraBtn.disabled = true;
+                } else {
+                    extraBtn.disabled = false;
+                }
+            }
+        } else {
+            specialSkillContainer.innerHTML = '';
+        }
+    }
+
+    function addLog(msg) {
+        const p = document.createElement('div');
+        p.innerHTML = `> ${msg}`;
+        logPanel.appendChild(p);
+        logPanel.scrollTop = logPanel.scrollHeight;
+        while(logPanel.children.length > 45) logPanel.removeChild(logPanel.firstChild);
+    }
+
+    // 计算协作加成 (实时根据角色)
+    function getCurrentCollaborationBonus() {
+        let activeCount = game.collaborationUnits.length;
+        if(game.role === 0) return Math.floor(activeCount / 2);   // 总工减半
+        if(game.role === 1) return activeCount + 1;               // 项目管理师+1
+        return activeCount;
+    }
+
+    // 自动获取当前回合基础研发加成 (用于自动产出)
+    function getAutoBonus() {
+        let collabBonus = getCurrentCollaborationBonus();
+        let base = 4 + collabBonus;
+        if(game.role === 3) base = Math.max(1, base - 2);
+        return base;
+    }
+
+    function addProgress(points, source = "system") {
+        if(game.gameOver) return;
+        let newProgress = game.progress + points;
+        game.progress = Math.min(100, newProgress);
+        updateUI();
+        let newMilestone = Math.min(6, Math.floor(game.progress / 16.667));
+        if(newMilestone > completedMilestones) {
+            for(let i=completedMilestones; i<newMilestone; i++) {
+                addLog(`🏆 技术指标突破！完成“${milestones[i]}”里程碑，科技自立自强迈进一步。`);
+            }
+            if(game.risk > 0) {
+                let reduce = Math.min(game.risk, newMilestone - completedMilestones);
+                game.risk = Math.max(0, game.risk - reduce);
+                addLog(`由于里程碑突破，风险-${reduce} (当前风险${game.risk})`);
+            }
+            completedMilestones = newMilestone;
+            updateUI();
+            // 总工程师50%进度触发关键路径突破
+            if(game.role === 0 && game.progress >= 50 && !game.keyPathTriggered) {
+                game.keyPathTriggered = true;
+                let remaining = 100 - game.progress;
+                let extra = Math.floor(remaining * 0.2);
+                if(extra > 0) {
+                    addLog(`🌟 总工程师「关键路径突破」触发！直接推进剩余进度的20%，获得 +${extra} 研发点！`);
+                    addProgress(extra);
+                }
+            }
+        }
+        checkWinLoss();
+    }
+
+    // 通用验证逻辑
+    function doVerification(isExtra = false) {
+        if(game.gameOver) { addLog("游戏已终结"); return false; }
+        if(!isExtra && game.hasVerifiedThisTurn) { addLog("本回合已经进行过【实事求是验证】，请结束回合后再试。"); return false; }
+        if(isExtra && (game.extraUsedThisTurn || game.hasVerifiedThisTurn)) { addLog("本回合已经使用过验证或额外突围，无法再次使用。"); return false; }
+        if(game.role === 2 && game.extremeRestNeeded) {
+            addLog("青年骨干需要休息！本回合无法进行验证。必须结束回合恢复。");
+            return false;
+        }
+        const dice = Math.floor(Math.random() * 6) + 1;
+        addLog(`🔬 ${isExtra ? '【技术突围】' : ''}实事求是验证 掷骰: ${dice}`);
+        if(dice >= 4) {
+            let basePoints = 8;
+            let bonus = getCurrentCollaborationBonus();
+            let totalPoints = basePoints + bonus;
+            if(game.role === 2 && !game.extremeRestNeeded) {
+                totalPoints += 2;
+                game.extremeStrikeCounter++;
+                addLog(`🔥 青年骨干极限攻关！连续第${game.extremeStrikeCounter}次，研发点额外+2`);
+                if(game.extremeStrikeCounter >= 3) {
+                    game.extremeRestNeeded = true;
+                    addLog("青年骨干连续攻关体力透支，下一回合无法进行验证！(需要休息)");
+                }
+            }
+            addLog(`✅ 验证通过! 获得 ${totalPoints} 研发点 (基础8 + 协作加成${bonus})`);
+            addProgress(totalPoints);
+            if(isExtra) {
+                game.extraUsedThisTurn = true;
+            } else {
+                game.hasVerifiedThisTurn = true;
+            }
+        } else {
+            if(!window.failureTokens) window.failureTokens = 0;
+            window.failureTokens++;
+            addLog(`❌ 验证失败，获得“失败教训” (${window.failureTokens}/3)`);
+            if(window.failureTokens >= 3) {
+                window.failureTokens = 0;
+                let bonus = getCurrentCollaborationBonus();
+                let points = 8 + bonus;
+                if(game.role === 2 && !game.extremeRestNeeded) { points+=2; }
+                addProgress(points);
+                addLog(`💡 积攒教训，自动验证成功！获得 ${points} 研发点`);
+            }
+            if(isExtra) {
+                game.extraUsedThisTurn = true;
+            } else {
+                game.hasVerifiedThisTurn = true;
+            }
+        }
+        updateUI();
+        checkWinLoss();
+        return true;
+    }
+
+    function performVerification() { doVerification(false); }
+    function performExtraVerification() { doVerification(true); }
+
+    function autonomyAction() {
+        if(game.gameOver) return;
+        if(game.progress < 2) { addLog("研发进度不足2%，无法自主攻关。"); return; }
+        if(game.risk <= 0) { addLog("当前没有断供风险。"); return; }
+        game.progress = Math.max(0, game.progress - 2);
+        game.risk = Math.max(0, game.risk - 1);
+        addLog(`💪 独立自主攻关！消耗2%进度，消除1点断供风险，当前风险${game.risk}`);
+        updateUI();
+        checkWinLoss();
+    }
+
+    function importTechnology() {
+        if(game.gameOver) return;
+        let newRisk = game.risk + 1;
+        if(newRisk >= 5) {
+            game.risk = 5;
+            addLog(`⚠️ 断供风险达到5，触发技术封锁！研发进度-10!`);
+            let lostProgress = 10;
+            game.progress = Math.max(0, game.progress - lostProgress);
+            if(game.role === 3 && !game.policyCooldown) {
+                addLog(`🏛️ 政策协调员特殊能力生效，可消除此次技术封锁负面影响！`);
+                let choice = confirm("技术封锁爆发！是否使用政策协调员特技消除本次封锁？(否则将损失进度)");
+                if(choice) {
+                    addLog("政策协调员启动应急协调，封锁影响抵消！");
+                    game.progress = Math.min(100, game.progress + lostProgress);
+                    game.risk = 4;
+                }
+            }
+            updateUI();
+        } else {
+            game.risk = newRisk;
+            addProgress(12, "import");
+            addLog(`📦 依赖进口技术模块，获得12研发点，但断供风险增加至${game.risk}`);
+        }
+        game.hasVerifiedThisTurn = true;
+        updateUI();
+        checkWinLoss();
+    }
+
+    function recruitTalent() {
+        if(game.gameOver) return;
+        if(game.talents >= 5) { addLog("人才梯队已满(5/5)。"); return; }
+        game.talents++;
+        addLog(`🎓 人才引进成功！新增青年骨干，当前人才 ${game.talents}/5。每名人才每回合结束自动+1研发点。`);
+        updateUI();
+    }
+
+    function endTurn() {
+        if(game.gameOver) return;
+        let autoPoints = getAutoBonus() + game.talents;
+        addLog(`📈 回合结束，协作网络+人才自动推进研发 +${autoPoints} 点`);
+        addProgress(autoPoints);
+        
+        if(game.role === 2 && game.extremeRestNeeded) {
+            game.extremeRestNeeded = false;
+            game.extremeStrikeCounter = 0;
+            addLog("青年骨干休息完毕，下回合可继续极限攻关。");
+        }
+        // 政策协调员冷却与自动赋能
+        if(game.role === 3) {
+            if(game.policyCooldown > 0) game.policyCooldown--;
+            if(game.policyCooldown === 0 && (game.turn % 3 === 2 || (game.turn === 0))) {
+                addLog("🏛️ 政策赋能触发：国家重大专项到账，获得10研发点！");
+                addProgress(10);
+                game.policyCooldown = 3;
+            }
+        }
+        game.turn++;
+        if(game.turn > 12) {
+            addLog("⌛ 回合数超过12，未完成技术突破，错失窗口期，游戏失败！");
+            game.gameOver = true;
+            game.winFlag = false;
+            updateUI();
+            return;
+        }
+        // 重置回合内标记
+        game.hasVerifiedThisTurn = false;
+        game.extraUsedThisTurn = false;
+        window.recruitUsedThisTurn = false;
+        if(game.risk >= 5) {
+            addLog("⚠️ 风险过高再次触发连锁反应，研发进度-5");
+            game.progress = Math.max(0, game.progress - 5);
+        }
+        if(game.talents > 0 && game.risk >= 3 && Math.random()<0.3) {
+            game.talents--;
+            game.brainDrain++;
+            addLog(`😔 人才流失！当前流失${game.brainDrain}/3`);
+        }
+        updateUI();
+        checkWinLoss();
+    }
+
+    function checkWinLoss() {
+        if(game.gameOver) return;
+        if(completedMilestones >= 6) {
+            addLog("🎉✨ 科技自立自强！完成全部技术指标，胜利！ ✨🎉");
+            game.gameOver = true; game.winFlag = true;
+            updateUI(); return;
+        }
+        if(game.talents >= 5 && game.risk === 0 && completedMilestones >= 4) {
+            addLog("🎉✨ 人才强国+自主产业链，胜利！ ✨🎉");
+            game.gameOver = true; game.winFlag = true;
+            updateUI(); return;
+        }
+        if(game.risk >= 5) { addLog("❌ 技术依赖陷阱，被卡脖子！游戏失败"); game.gameOver=true; updateUI(); return; }
+        if(game.brainDrain >= 3) { addLog("❌ 人才空心化，创新团队瓦解！失败"); game.gameOver=true; updateUI(); return; }
+    }
+
+    function updateUI() {
+        turnSpan.innerText = game.turn;
+        progressSpan.innerText = Math.floor(game.progress);
+        riskSpan.innerText = game.risk;
+        collabCountSpan.innerText = game.collaborationUnits.length;
+        let bonus = getCurrentCollaborationBonus();
+        collabBonusSpan.innerText = bonus;
+        talentSpan.innerText = game.talents;
+        lossSpan.innerText = game.brainDrain;
+        let newCompleted = Math.min(6, Math.floor(game.progress / 16.667));
+        completedMilestones = newCompleted;
+        techDoneNumSpan.innerText = completedMilestones;
+        progressFillDiv.style.width = Math.min(100, game.progress) + '%';
+        progressFillDiv.innerText = Math.floor(game.progress) + '%';
+        milestoneContainer.innerHTML = '';
+        for(let i=0; i<milestones.length; i++) {
+            const badge = document.createElement('span');
+            badge.className = 'milestone-badge';
+            if(i < completedMilestones) badge.classList.add('milestone-completed');
+            badge.innerText = milestones[i];
+            milestoneContainer.appendChild(badge);
+        }
+        collabListDiv.innerHTML = '';
+        allCollaborations.forEach(collab => {
+            const isActive = game.collaborationUnits.includes(collab.name);
+            const btn = document.createElement('button');
+            btn.innerText = `${collab.name} ${isActive ? '✓已协作' : '➕待联合'}`;
+            btn.className = 'collab-btn';
+            if(isActive) btn.classList.add('active');
+            if(game.gameOver) btn.disabled = true;
+            btn.onclick = () => {
+                if(game.gameOver) return;
+                if(isActive) { addLog(`已联合${collab.name}`); return; }
+                if(game.collaborationUnits.length >= 4) { addLog("协作单位已达上限"); return; }
+                game.collaborationUnits.push(collab.name);
+                addLog(`成功联合${collab.name}！群众路线加成提升。`);
+                updateUI();
+            };
+            collabListDiv.appendChild(btn);
+        });
+        updateRoleUI();
+        let disabledFlag = game.gameOver || game.hasVerifiedThisTurn || (game.role===2 && game.extremeRestNeeded);
+        verifyBtn.disabled = disabledFlag;
+        autonomyBtn.disabled = game.gameOver;
+        importTechBtn.disabled = game.gameOver;
+        recruitBtn.disabled = game.gameOver;
+        nextRoundBtn.disabled = game.gameOver;
+    }
+
+    function resetGame() {
+        game = {
+            turn: 0, progress: 0, risk: 0, collaborationUnits: [], talents: 0, brainDrain: 0,
+            gameOver: false, winFlag: false, role: game.role, hasVerifiedThisTurn: false,
+            extraUsedThisTurn: false, extremeStrikeCounter: 0, extremeRestNeeded: false,
+            policyCooldown: 0, keyPathTriggered: false,
+        };
+        window.failureTokens = 0;
+        window.recruitUsedThisTurn = false;
+        completedMilestones = 0;
+        addLog("游戏已重置，当前角色保持不变。科技自立自强，硅基突围！");
+        updateUI();
+    }
+
+    function switchRole(roleId) {
+        if(game.gameOver) {
+            addLog("游戏已结束，请先重置游戏再切换角色。");
+            return;
+        }
+        game.role = roleId;
+        game.extremeStrikeCounter = 0;
+        game.extremeRestNeeded = false;
+        game.extraUsedThisTurn = false;
+        game.hasVerifiedThisTurn = false;
+        addLog(`切换到 ${ROLES_DATA[roleId].name}，角色技能与说明已更新。`);
+        updateUI();
+    }
+
+    verifyBtn.onclick = performVerification;
+    autonomyBtn.onclick = autonomyAction;
+    importTechBtn.onclick = importTechnology;
+    recruitBtn.onclick = recruitTalent;
+    nextRoundBtn.onclick = endTurn;
+    resetBtn.onclick = resetGame;
+    
+    function initRoleButtons() {
+        const btns = document.querySelectorAll('.role-switch-btn');
+        btns.forEach(btn => {
+            btn.onclick = (e) => {
+                const roleVal = parseInt(btn.getAttribute('data-role'), 10);
+                if(!isNaN(roleVal)) switchRole(roleVal);
+            };
+        });
+    }
+    
+    resetGame();
+    initRoleButtons();
+    updateRoleUI();
+</script>
+</body>
+</html>
